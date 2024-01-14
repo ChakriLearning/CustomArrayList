@@ -3,6 +3,9 @@ package com.demo.collection.customarray;
 import com.demo.collection.arraysupport.ArraySupportDemo;
 import com.demo.collection.exception.IndexOutOfBoundException;
 import com.demo.collection.exception.InvalidInputException;
+import com.demo.collection.exception.NoSuchElementException;
+import com.demo.collection.iterator.IteratorDemo;
+//import com.demo.collection.iterator.ListIteratorDemo;
 import com.demo.collection.system.SystemDemo;
 
 public class CustomArrayList<T> implements CustomList<T>{
@@ -10,7 +13,7 @@ public class CustomArrayList<T> implements CustomList<T>{
     private static final Object[] EMPTY_ELEMENTDATA = {};
     private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 
-    Object[] elementData;
+    public Object[] elementData;
     private int size;
     public CustomArrayList() {
         elementData = new Object[DEFAULT_CAPACITY];   //default capacity for no input size;
@@ -23,6 +26,43 @@ public class CustomArrayList<T> implements CustomList<T>{
         } else {
             throw new InvalidInputException("Illegal Capacity : " + initialCapacity);
         }
+    }
+
+    public Itr iterator() {
+       return new Itr();
+
+    }
+
+    public class Itr implements IteratorDemo<T> {
+        int nextElement;
+        @Override
+        public boolean hasNext() {
+            return nextElement != size;
+        }
+
+        @Override
+        public T next() {
+            if (nextElement >= size) throw new NoSuchElementException("for index" + nextElement);
+            Object[] elementData = CustomArrayList.this.elementData;
+
+            return (T) elementData[nextElement++];
+        }
+
+        @Override
+        public boolean remove() {
+           CustomArrayList.this.elementData =  SystemDemo.fastRemove(nextElement,elementData);
+           size = size - 1;
+            return true;
+        }
+
+    }
+
+    private void add(T e,Object[] elementData, int size) {
+        if(size == elementData.length) {
+            elementData = growSize();
+        }
+        elementData[size] = e;
+        this.size = size + 1;
     }
 
     @Override
@@ -71,11 +111,8 @@ public class CustomArrayList<T> implements CustomList<T>{
 
     @Override
     public <T> T[] print() {
-        T[] array = (T[])new Object[this.size];
-        for(int i = 0; i < this.size; i++) {
-            array[i] = (T)this.elementData[i];
-        }
-        return array;
+        Object[] tempArray = this.elementData;
+        return (T[])tempArray;
     }
 
     @Override
@@ -94,21 +131,13 @@ public class CustomArrayList<T> implements CustomList<T>{
 
     }
 
-    private void add(T e,Object[] elementData, int size) {
-        if(size == elementData.length) {
-            elementData = growSize();
-        }
-        elementData[size] = e;
-        this.size = size + 1;
-    }
-
     private Object[] growSize() {
         return growSize(this.size + 1);
     }
 
     private Object[] growSize(int minCapacity) {
-        int oldCapacity = elementData.length;
-        if(oldCapacity > 0 || elementData != DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+        int oldCapacity = this.elementData.length;
+        if(oldCapacity > 0 || this.elementData != DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
             int newCapacity = ArraySupportDemo.newLength(oldCapacity, minCapacity - oldCapacity, oldCapacity >> 2);
             return ArraySupportDemo.copyOf(elementData, newCapacity);
         }
